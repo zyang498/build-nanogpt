@@ -170,8 +170,8 @@ if torch.cuda.is_available():
     device = "cuda"
 elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
     device = "mps"
-device = "cpu"
 print(f"using device: {device}")
+device = "cpu" # OVERRIDE
 
 # get a data batch
 import tiktoken
@@ -182,6 +182,7 @@ text = text[:1000]
 tokens = enc.encode(text)
 B, T = 4, 32
 buf = torch.tensor(tokens[:B*T + 1])
+buf = buf.to(device)
 x = buf[:-1].view(B, T) ## the input tensor to the model, the idx in forward function
 y = buf[1:].view(B, T) ## the gt tensor at every position of x
 
@@ -189,9 +190,18 @@ y = buf[1:].view(B, T) ## the gt tensor at every position of x
 # get logits
 model = GPT(GPTConfig()) ## random model initialization by PyTorch default constructor
 model.to(device)
-logits, loss = model(x, y)
+## logits, loss = model(x, y)
 
-print(loss)
+# optimize!
+optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
+for i in range(50):
+    optimizer.zero_grad()
+    logits, loss = model(x, y)
+    loss.backward()
+    optimizer.step()
+    print(f"step {i}, loss: {loss.item()}")
+
+## print(loss)
 ## the loss turns out to be 10.8803, which is close to -ln(1/50257).
 ## It is a success because we expect the initialization of each token's probability is roughly the same, the probability distribution is diffused
 import sys; sys.exit(0)
