@@ -245,6 +245,7 @@ torch.set_float32_matmul_precision('high')
 # get logits
 model = GPT(GPTConfig()) ## random model initialization by PyTorch default constructor
 model.to(device)
+model = torch.compile(model)
 
 # optimize!
 optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
