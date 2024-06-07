@@ -245,6 +245,7 @@ train_loader = DataLoaderLite(B=4, T=1024)
 # get logits
 model = GPT(GPTConfig()) ## random model initialization by PyTorch default constructor
 model.to(device)
+model = torch.compile(model)
 
 # optimize!
 optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
