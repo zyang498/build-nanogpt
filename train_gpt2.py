@@ -223,19 +223,22 @@ class DataLoaderLite:
 
 # -----------------------------------------------------------------------------
 # attempt to autodetect the device
+import time
+
 device = "cpu"
 if torch.cuda.is_available():
     device = "cuda"
 elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
     device = "mps"
 print(f"using device: {device}")
-## device = "cpu" # OVERRIDE
 
 torch.manual_seed(1337)
 if torch.cuda.is_available():
     torch.cuda.manual_seed(1337)
 
-train_loader = DataLoaderLite(B=4, T=32)
+train_loader = DataLoaderLite(B=16, T=1024)
+
+torch.set_float32_matmul_precision('high')
 
 # model = GPT.from_pretrained('../gpt2')
 # get logits
@@ -245,19 +248,19 @@ model.to(device)
 # optimize!
 optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
 for i in range(50):
+    t0 = time.time()
     x, y = train_loader.next_batch()
     x, y = x.to(device), y.to(device)
     optimizer.zero_grad()
     logits, loss = model(x, y)
     loss.backward()
     optimizer.step()
-    print(f"step {i}, loss: {loss.item()}")
-    ## expect the loss to go down, but not too fast, because we don't want to overfit any batches
-    ## the reason that it still goes down is that the model can drive the probabilites of tokens that never occur in the document to very low
+    torch.cuda.synchronize() # wait for the GPU to finish work
+    t1 = time.time()
+    dt = (t1 - t0)*1000 # time difference in miliseconds
+    tokens_per_sec = (train_loader.B * train_loader.T) / (t1 - t0)
+    print(f"step {i}, loss: {loss.item()}, dt: {dt:.2f}ms, tok/sec: {tokens_per_sec:.2f}")
 
-## print(loss)
-## the loss turns out to be 10.8803, which is close to -ln(1/50257).
-## It is a success because we expect the initialization of each token's probability is roughly the same, the probability distribution is diffused
 import sys; sys.exit(0)
 
 # prefix tokens
