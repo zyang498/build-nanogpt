@@ -232,14 +232,14 @@ torch.manual_seed(1337)
 if torch.cuda.is_available():
     torch.cuda.manual_seed(1337)
 
-train_loader = DataLoaderLite(B=4, T=1024)
+train_loader = DataLoaderLite(B=16, T=1024)
 
 ## tf32 makes the matrix multiplication only use the a portion of the fp32, makes matrix multiplication faster on NVIDIA A100
-# torch.set_float32_matmul_precision('high')
+torch.set_float32_matmul_precision('high')
 
 # model = GPT.from_pretrained('../gpt2')
 # get logits
-model = GPT(GPTConfig()) ## random model initialization by PyTorch default constructor
+model = GPT(GPTConfig(vocab_size=50304)) ## random model initialization by PyTorch default constructor
 model.to(device)
 ## torch.compile sees the entire code and sees if it can be optimized during compile time based on NVIDIA GPU
 ## It is called kernel fusion, make use of GPU SRAM, which is the small memory inside the GPU chip instead of the HBM
