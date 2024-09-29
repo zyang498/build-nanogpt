@@ -238,7 +238,7 @@ if torch.cuda.is_available():
 
 train_loader = DataLoaderLite(B=2, T=1024)
 
-torch.set_float32_matmul_precision('high')
+# torch.set_float32_matmul_precision('high')
 
 # model = GPT.from_pretrained('../gpt2')
 # get logits
