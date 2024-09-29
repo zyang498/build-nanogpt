@@ -6,7 +6,7 @@ from torch.nn import functional as F
 
 # -----------------------------------------------------------------------------
 
-# multi-head attention operates like a parallel stream of multiple attention and concatenate the output
+## multi-head attention operates like a parallel stream of multiple attention and concatenate the output
 class CausalSelfAttention(nn.Module):
 
     def __init__(self, config):
@@ -67,8 +67,8 @@ class Block(nn.Module):
         self.mlp = MLP(config)
 
     def forward(self, x):
-        x = x + self.attn(self.ln_1(x)) # attention is an aggregation (pooling/weighted sum) function; a reduce operation
-        x = x + self.mlp(self.ln_2(x)) # happen for every token individually; a map function
+        x = x + self.attn(self.ln_1(x)) ## attention is an aggregation (pooling/weighted sum) function; a reduce operation
+        x = x + self.mlp(self.ln_2(x)) ## happen for every token individually; a map function
         return x
 
 @dataclass
@@ -86,10 +86,10 @@ class GPT(nn.Module):
         self.config = config
 
         self.transformer = nn.ModuleDict(dict(
-            wte = nn.Embedding(config.vocab_size, config.n_embd), # weighted token embedding
+            wte = nn.Embedding(config.vocab_size, config.n_embd), ## weighted token embedding
             wpe = nn.Embedding(config.block_size, config.n_embd),
-            h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]), # hidden
-            ln_f = nn.LayerNorm(config.n_embd), # layer norm (a new layer added to the original decoder by gpt2)
+            h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]), ## hidden
+            ln_f = nn.LayerNorm(config.n_embd), ## layer norm (a new layer added to the original decoder by gpt2)
         ))
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
 
@@ -165,17 +165,19 @@ num_return_sequences = 5
 max_length = 30
 
 model = GPT.from_pretrained('../gpt2')
-# print("didn't crash yay!")
+## print("didn't crash yay!")
 model.eval()
-model.to('cuda')
+## model.to('cuda')
+model.to('mps')
 
 # prefix tokens
 import tiktoken
 enc = tiktoken.get_encoding('gpt2')
-tokens = enc.encode("Hello, I'm a language model,")
+tokens = enc.encode("Hello, I'm a language model,") ## tiktokenizer.vercel.app
 tokens = torch.tensor(tokens, dtype=torch.long) # (8,)
 tokens = tokens.unsqueeze(0).repeat(num_return_sequences, 1) # (5, 8)
-x = tokens.to('cuda')
+## x = tokens.to('cuda') ## x is the idx in the forward function input
+x = tokens.to('mps')
 
 # generate! right now x is (B, T) where B = 5, T = 8
 # set the seed to 42
@@ -183,7 +185,7 @@ torch.manual_seed(42)
 torch.cuda.manual_seed(42)
 while x.size(1) < max_length:
     # forward the model to get the logits
-    with torch.no_grad():
+    with torch.no_grad(): ## doesn't need to call any backward method, so no need to save any intermediate tensor
         logits = model(x) # (B, T, vocab_size)
         # take the logits at the last position
         logits = logits[:, -1, :] # (B, vocab_size)
@@ -192,6 +194,8 @@ while x.size(1) < max_length:
         # do top-k sampling of 50 (huggingface pipeline default)
         # topk_probs here becomes (5, 50), topk_indices is (5, 50)
         topk_probs, topk_indices = torch.topk(probs, 50, dim=-1)
+        ## TODO: look at all the actual probabilies and the top 50 probabilies before renormalization
+        ## It turns out that the top-10 probabilities are significantly higher than others, the actual values ranging from 0.1 to 0.9
         # select a token from the top-k probabilities
         # note: multinomial does not demand the input to sum to 1
         ix = torch.multinomial(topk_probs, 1) # (B, 1)
@@ -205,3 +209,4 @@ for i in range(num_return_sequences):
     tokens = x[i, :max_length].tolist()
     decoded = enc.decode(tokens)
     print(">", decoded)
+    ## the results are different from hg face because of the transformers.pipeline
