@@ -173,7 +173,7 @@ num_return_sequences = 5
 max_length = 30
 
 # model = GPT.from_pretrained('../gpt2')
-model = GPT(GPTConfig())
+model = GPT(GPTConfig()) ## random model initialization by PyTorch default constructor
 model.eval()
 model.to(device)
 
