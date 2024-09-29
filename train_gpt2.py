@@ -16,6 +16,7 @@ class CausalSelfAttention(nn.Module):
         self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd)
         # output projection
         self.c_proj = nn.Linear(config.n_embd, config.n_embd)
+        ## a flag for the module
         self.c_proj.NANOGPT_SCALE_INIT = 1
         # regularization
         self.n_head = config.n_head
@@ -69,6 +70,9 @@ class Block(nn.Module):
         self.mlp = MLP(config)
 
     def forward(self, x):
+        ## Andrej refers a series of Block as a residual stream
+        ## Because of the addition, the std through the whole residual stream scales up to 1/sqrt(N) where N is the number of layers
+        ## That's why we want to initialize it with std *= (2 * self.config.n_layer) ** -0.5 (the initialization is from gpt2 paper)
         x = x + self.attn(self.ln_1(x)) ## attention is an aggregation (pooling/weighted sum) function; a reduce operation
         x = x + self.mlp(self.ln_2(x)) ## happen for every token individually; a map function
         return x
