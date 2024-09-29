@@ -167,6 +167,9 @@ class GPT(nn.Module):
 import tiktoken
 
 class DataLoaderLite:
+    '''
+    go through the document in chunks
+    '''
     def __init__(self, B, T):
         self.B = B
         self.T = T
@@ -203,7 +206,7 @@ if torch.cuda.is_available():
 elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
     device = "mps"
 print(f"using device: {device}")
-device = "cpu" # OVERRIDE
+## device = "cpu" # OVERRIDE
 
 train_loader = DataLoaderLite(B=4, T=32)
 
@@ -211,7 +214,6 @@ train_loader = DataLoaderLite(B=4, T=32)
 # get logits
 model = GPT(GPTConfig()) ## random model initialization by PyTorch default constructor
 model.to(device)
-## logits, loss = model(x, y)
 
 # optimize!
 optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
@@ -223,6 +225,8 @@ for i in range(50):
     loss.backward()
     optimizer.step()
     print(f"step {i}, loss: {loss.item()}")
+    ## expect the loss to go down, but not too fast, because we don't want to overfit any batches
+    ## the reason that it still goes down is that the model can drive the probabilites of tokens that never occur in the document to very low
 
 ## print(loss)
 ## the loss turns out to be 10.8803, which is close to -ln(1/50257).
