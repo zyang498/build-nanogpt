@@ -6,6 +6,7 @@ from torch.nn import functional as F
 
 # -----------------------------------------------------------------------------
 
+# multi-head attention operates like a parallel stream of multiple attention and concatenate the output
 class CausalSelfAttention(nn.Module):
 
     def __init__(self, config):
@@ -66,8 +67,8 @@ class Block(nn.Module):
         self.mlp = MLP(config)
 
     def forward(self, x):
-        x = x + self.attn(self.ln_1(x))
-        x = x + self.mlp(self.ln_2(x))
+        x = x + self.attn(self.ln_1(x)) # attention is an aggregation (pooling/weighted sum) function; a reduce operation
+        x = x + self.mlp(self.ln_2(x)) # happen for every token individually; a map function
         return x
 
 @dataclass
@@ -85,10 +86,10 @@ class GPT(nn.Module):
         self.config = config
 
         self.transformer = nn.ModuleDict(dict(
-            wte = nn.Embedding(config.vocab_size, config.n_embd),
+            wte = nn.Embedding(config.vocab_size, config.n_embd), # weighted token embedding
             wpe = nn.Embedding(config.block_size, config.n_embd),
-            h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
-            ln_f = nn.LayerNorm(config.n_embd),
+            h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]), # hidden
+            ln_f = nn.LayerNorm(config.n_embd), # layer norm (a new layer added to the original decoder by gpt2)
         ))
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
 
