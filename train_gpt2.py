@@ -110,7 +110,7 @@ class GPT(nn.Module):
         logits = self.lm_head(x) # (B, T, vocab_size)
         loss = None
         if targets is not None:
-            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
+            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1)) ## flatenning the input to shape (B, T)
         return logits, loss
 
     @classmethod
@@ -192,6 +192,8 @@ model.to(device)
 logits, loss = model(x, y)
 
 print(loss)
+## the loss turns out to be 10.8803, which is close to -ln(1/50257).
+## It is a success because we expect the initialization of each token's probability is roughly the same, the probability distribution is diffused
 import sys; sys.exit(0)
 
 # prefix tokens
