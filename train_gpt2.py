@@ -167,6 +167,7 @@ if torch.cuda.is_available():
     device = "cuda"
 elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
     device = "mps"
+device = "cpu"
 print(f"using device: {device}")
 
 # get a data batch
@@ -178,8 +179,8 @@ text = text[:1000]
 tokens = enc.encode(text)
 B, T = 4, 32
 buf = torch.tensor(tokens[:B*T + 1])
-x = buf[:-1].view(B, T)
-y = buf[1:].view(B, T)
+x = buf[:-1].view(B, T) ## the input tensor to the model, the idx in forward function
+y = buf[1:].view(B, T) ## the gt tensor at every position of x
 
 # model = GPT.from_pretrained('../gpt2')
 # get logits
