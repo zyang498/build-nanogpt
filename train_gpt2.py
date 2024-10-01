@@ -245,6 +245,7 @@ model.to(device)
 ## It is called kernel fusion, make use of GPU SRAM, which is the small memory inside the GPU chip instead of the HBM
 model = torch.compile(model)
 
+## learning rate scheduler is a popular academic field to do research
 max_lr = 6e-4
 min_lr = max_lr * 0.1
 warmup_steps = 10
