@@ -245,6 +245,8 @@ train_loader = DataLoaderLite(B=4, T=1024)
 # get logits
 model = GPT(GPTConfig()) ## random model initialization by PyTorch default constructor
 model.to(device)
+## torch.compile sees the entire code and sees if it can be optimized during compile time based on NVIDIA GPU
+## It is called kernel fusion, make use of GPU SRAM, which is the small memory inside the GPU chip instead of the HBM
 model = torch.compile(model)
 
 # optimize!
@@ -254,7 +256,7 @@ for i in range(50):
     x, y = train_loader.next_batch()
     x, y = x.to(device), y.to(device)
     optimizer.zero_grad()
-    ## bf16
+    ## bf16: a way to reduce precision of numbers within the range of fp32
     with torch.autocast(device_type=device, dtype=torch.bfloat16):
         logits, loss = model(x, y)
     loss.backward()
