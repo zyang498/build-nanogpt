@@ -236,8 +236,9 @@ torch.manual_seed(1337)
 if torch.cuda.is_available():
     torch.cuda.manual_seed(1337)
 
-train_loader = DataLoaderLite(B=2, T=1024)
+train_loader = DataLoaderLite(B=4, T=1024)
 
+## tf32 makes the matrix multiplication only use the a portion of the fp32, makes matrix multiplication faster on NVIDIA A100
 # torch.set_float32_matmul_precision('high')
 
 # model = GPT.from_pretrained('../gpt2')
@@ -252,6 +253,7 @@ for i in range(50):
     x, y = train_loader.next_batch()
     x, y = x.to(device), y.to(device)
     optimizer.zero_grad()
+    ## bf16
     with torch.autocast(device_type=device, dtype=torch.bfloat16):
         logits, loss = model(x, y)
     loss.backward()
