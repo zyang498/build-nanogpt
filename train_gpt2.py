@@ -256,6 +256,7 @@ for i in range(50):
     with torch.autocast(device_type=device, dtype=torch.bfloat16):
         logits, loss = model(x, y)
     loss.backward()
+    ## global norm clipping, to prevent exploding gradients
     norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
     optimizer.step()
     ## torch.cuda.synchronize() # wait for the GPU to finish work
