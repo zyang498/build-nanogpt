@@ -258,10 +258,13 @@ torch.manual_seed(1337)
 if torch.cuda.is_available():
     torch.cuda.manual_seed(1337)
 
+## batch size is highly correlated with other hyperparameters and learning rate
 total_batch_size = 524288 # 2**19, ~0.5M, in number of tokens
 B = 16 # micro batch size
 T = 1024 # sequence length
 assert total_batch_size % (B * T) == 0, "make sure total_batch_size is divisible by B * T"
+## do multiple forward-backward in the network without updates,
+## update the network when # steps reaching grad_accum_steps
 grad_accum_steps = total_batch_size // (B * T)
 print(f"total desired batch size: {total_batch_size}")
 print(f"=> calculated gradient accumulation steps: {grad_accum_steps}")
