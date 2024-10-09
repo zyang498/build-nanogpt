@@ -239,7 +239,7 @@ if torch.cuda.is_available():
 train_loader = DataLoaderLite(B=4, T=1024)
 
 ## tf32 makes the matrix multiplication only use the a portion of the fp32, makes matrix multiplication faster on NVIDIA A100
-# torch.set_float32_matmul_precision('high')
+torch.set_float32_matmul_precision('high')
 
 # model = GPT.from_pretrained('../gpt2')
 # get logits
@@ -258,8 +258,8 @@ for i in range(50):
         logits, loss = model(x, y)
     loss.backward()
     optimizer.step()
-    ## torch.cuda.synchronize() # wait for the GPU to finish work
-    torch.mps.synchronize()
+    torch.cuda.synchronize() # wait for the GPU to finish work
+    ## torch.mps.synchronize()
     t1 = time.time()
     dt = (t1 - t0)*1000 # time difference in miliseconds
     tokens_per_sec = (train_loader.B * train_loader.T) / (t1 - t0)
