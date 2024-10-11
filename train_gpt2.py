@@ -245,6 +245,7 @@ torch.set_float32_matmul_precision('high')
 # get logits
 model = GPT(GPTConfig()) ## random model initialization by PyTorch default constructor
 model.to(device)
+## torch.compile not supported for old GPUs like P100
 model = torch.compile(model)
 
 # optimize!
