@@ -26,7 +26,7 @@ os.makedirs(DATA_CACHE_DIR, exist_ok=True)
 # download the dataset
 # fw = load_dataset("HuggingFaceFW/fineweb-edu", name=remote_name, split="train")
 from modelscope.msdatasets import MsDataset
-fw =  MsDataset.load('AI-ModelScope/fineweb-edu', split="train")
+fw =  MsDataset.load('AI-ModelScope/fineweb-edu', subset_name=remote_name, split="train")
 
 # init the tokenizer
 enc = tiktoken.get_encoding("gpt2")
