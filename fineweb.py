@@ -16,17 +16,21 @@ from tqdm import tqdm # pip install tqdm
 
 # ------------------------------------------
 local_dir = "edu_fineweb10B"
+modelscope_cache_dir = "modelscope_cache"
 remote_name = "sample-10BT"
 shard_size = int(1e8) # 100M tokens per shard, total of 100 shards
 
 # create the cache the local directory if it doesn't exist yet
 DATA_CACHE_DIR = os.path.join(os.path.dirname(__file__), local_dir)
 os.makedirs(DATA_CACHE_DIR, exist_ok=True)
+MODELSCOPE_CACHE_DIR = os.path.join(os.path.dirname(__file__), modelscope_cache_dir)
+os.makedirs(MODELSCOPE_CACHE_DIR, exist_ok=True)
+print(MODELSCOPE_CACHE_DIR)
 
 # download the dataset
 # fw = load_dataset("HuggingFaceFW/fineweb-edu", name=remote_name, split="train")
 from modelscope.msdatasets import MsDataset
-fw =  MsDataset.load('AI-ModelScope/fineweb-edu', subset_name=remote_name, split="train")
+fw =  MsDataset.load('AI-ModelScope/fineweb-edu', subset_name=remote_name, split="train", cache_dir=MODELSCOPE_CACHE_DIR)
 
 # init the tokenizer
 enc = tiktoken.get_encoding("gpt2")
